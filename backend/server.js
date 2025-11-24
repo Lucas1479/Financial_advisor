@@ -1,7 +1,9 @@
-const express = require('express');
-const dotenv = require('dotenv');
-const cors = require('cors');
-const connectDB = require('./config/db');
+import express from 'express';
+import dotenv from 'dotenv';
+import cors from 'cors';
+import cookieParser from 'cookie-parser';
+import connectDB from './config/db.js';
+import routes from './routes/index.js';
 
 // Load environment variables
 dotenv.config();
@@ -12,17 +14,20 @@ connectDB();
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:5173', // 前端地址
+  credentials: true // 允许携带 cookie
+}));
 app.use(express.json());
+app.use(cookieParser());
 
 // Routes
 app.get('/', (req, res) => {
   res.send('API is running...');
 });
 
-// MCP / Figma Integration Placeholder
-// 这里预留了 Figma MCP 集成的路由或逻辑
-app.use('/api/figma', require('./routes/figmaRoutes'));
+// Routes
+app.use(routes);
 
 const PORT = process.env.PORT || 5000;
 

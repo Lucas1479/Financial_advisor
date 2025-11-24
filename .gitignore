@@ -32,3 +32,12 @@ yarn-error.log*
 *.sln
 *.sw?
 
+# System Files (Windows/Mac)
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Cursor / IDE
+.cursor
+.history
