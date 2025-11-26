@@ -3,9 +3,10 @@ import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import Dashboard from './pages/Dashboard';
+import WealthPage from './pages/WealthPage';
 import GoalsPage from './pages/GoalsPage';
-import SimulatorPage from './pages/SimulatorPage';
-import EducationPage from './pages/EducationPage';
+import MarketplacePage from './pages/MarketplacePage';
+import PlaygroundPage from './pages/PlaygroundPage';
 
 function App() {
   return (
@@ -17,9 +18,13 @@ function App() {
         
         {/* Protected Routes (Should Wrap in Auth Middleware later) */}
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/wealth" element={<WealthPage />} />
         <Route path="/goals" element={<GoalsPage />} />
-        <Route path="/simulator" element={<SimulatorPage />} />
-        <Route path="/education" element={<EducationPage />} />
+        <Route path="/marketplace" element={<MarketplacePage />} />
+        <Route path="/playground" element={<PlaygroundPage />} />
+
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
   );

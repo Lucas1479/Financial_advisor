@@ -1,154 +1,194 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, Lock, Mail, User } from 'lucide-react';
-import api from '../utils/api';
+import axios from 'axios';
+import { User, Mail, Lock, ArrowRight, ShieldCheck } from 'lucide-react';
 
 const RegisterPage = () => {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-  });
-  const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [message, setMessage] = useState(null);
   const navigate = useNavigate();
 
-  const { name, email, password, confirmPassword } = formData;
+  useEffect(() => {
+    const userInfo = localStorage.getItem('userInfo');
+    if (userInfo) {
+      navigate('/dashboard');
+    }
+  }, [navigate]);
 
-  const onChange = (e) =>
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-
-  const onSubmit = async (e) => {
+  const submitHandler = async (e) => {
     e.preventDefault();
+
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      setMessage('Passwords do not match');
       return;
     }
-    setIsLoading(true);
+
     try {
-      await api.post('/users/register', { name, email, password });
+      const config = {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      };
+
+      const { data } = await axios.post(
+        '/api/users',
+        { name, email, password },
+        config
+      );
+
+      localStorage.setItem('userInfo', JSON.stringify(data));
       navigate('/dashboard');
-    } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed');
-    } finally {
-      setIsLoading(false);
+    } catch (error) {
+      console.error(error);
+      setMessage('Error registering user');
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-      {/* Background Decoration */}
-      <div className="absolute inset-0 bg-dot-pattern opacity-50 pointer-events-none"></div>
-
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden relative z-10">
-        <div className="p-8">
-          <div className="text-center mb-8">
-             <Link to="/" className="inline-flex items-center gap-2 mb-6">
-              <div className="w-8 h-8 bg-black text-white rounded-lg flex items-center justify-center font-bold text-lg">F</div>
-              <span className="font-bold text-xl tracking-tight text-slate-900">FinTwin</span>
-            </Link>
-            <h2 className="text-2xl font-bold text-slate-900">Create an account</h2>
-            <p className="text-slate-500 mt-2">Start your journey to financial freedom.</p>
+    <div className="min-h-screen flex w-full bg-white">
+      {/* Left Side - Form */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 lg:p-12">
+        <div className="max-w-md w-full space-y-8 animate-fade-in">
+          <div className="text-center lg:text-left">
+            <div className="flex items-center justify-center lg:justify-start gap-2 mb-6">
+                <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-primary/30">
+                  F
+                </div>
+                <span className="text-2xl font-bold text-slate-900 tracking-tight">FinTwin</span>
+            </div>
+            <h2 className="text-4xl font-bold text-slate-900 mb-2">Create an account</h2>
+            <p className="text-slate-500">Start your journey to financial freedom today.</p>
           </div>
+          
+          {message && (
+            <div className="bg-red-50 text-red-600 p-4 rounded-xl text-sm border border-red-100 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                {message}
+            </div>
+          )}
 
-          <form onSubmit={onSubmit} className="space-y-4">
-            {error && (
-              <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg border border-red-100">
-                {error}
-              </div>
-            )}
-            
+          <form className="mt-8 space-y-5" onSubmit={submitHandler}>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Full Name</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Full Name</label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                  <User size={18} />
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <User className="h-5 w-5 text-slate-400" />
                 </div>
                 <input
                   type="text"
-                  name="name"
-                  value={name}
-                  onChange={onChange}
-                  className="block w-full pl-10 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm placeholder-slate-400 focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-colors"
-                  placeholder="John Doe"
                   required
+                  className="input-rounded w-full pl-10 bg-slate-50"
+                  placeholder="John Doe"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Email</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Email address</label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                  <Mail size={18} />
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Mail className="h-5 w-5 text-slate-400" />
                 </div>
                 <input
                   type="email"
-                  name="email"
+                  required
+                  className="input-rounded w-full pl-10 bg-slate-50"
+                  placeholder="name@company.com"
                   value={email}
-                  onChange={onChange}
-                  className="block w-full pl-10 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm placeholder-slate-400 focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-colors"
-                  placeholder="name@example.com"
-                  required
+                  onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Password</label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                  <Lock size={18} />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
+                    <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Lock className="h-5 w-5 text-slate-400" />
+                        </div>
+                        <input
+                        type="password"
+                        required
+                        className="input-rounded w-full pl-10 bg-slate-50"
+                        placeholder="••••••••"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        />
+                    </div>
                 </div>
-                <input
-                  type="password"
-                  name="password"
-                  value={password}
-                  onChange={onChange}
-                  className="block w-full pl-10 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm placeholder-slate-400 focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-colors"
-                  placeholder="••••••••"
-                  required
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Confirm Password</label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                  <Lock size={18} />
+                <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Confirm</label>
+                    <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Lock className="h-5 w-5 text-slate-400" />
+                        </div>
+                        <input
+                        type="password"
+                        required
+                        className="input-rounded w-full pl-10 bg-slate-50"
+                        placeholder="••••••••"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        />
+                    </div>
                 </div>
-                <input
-                  type="password"
-                  name="confirmPassword"
-                  value={confirmPassword}
-                  onChange={onChange}
-                  className="block w-full pl-10 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm placeholder-slate-400 focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-colors"
-                  placeholder="••••••••"
-                  required
-                />
-              </div>
             </div>
 
-            <button 
-              disabled={isLoading}
-              className="w-full bg-slate-900 text-white py-2.5 rounded-xl text-sm font-bold hover:bg-slate-800 transition shadow-lg shadow-slate-900/20 flex items-center justify-center gap-2 mt-2"
+            <div className="flex items-start gap-3 mt-2">
+                <input type="checkbox" className="mt-1 rounded border-slate-300 text-primary focus:ring-primary" required />
+                <p className="text-sm text-slate-500">
+                    I agree to the <a href="#" className="text-primary font-medium hover:underline">Terms of Service</a> and <a href="#" className="text-primary font-medium hover:underline">Privacy Policy</a>.
+                </p>
+            </div>
+
+            <button
+              type="submit"
+              className="w-full btn-primary-rounded flex justify-center items-center gap-2 group mt-6"
             >
-              {isLoading ? 'Creating account...' : 'Create Account'}
-              {!isLoading && <ArrowRight size={16} />}
+              Create Account
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </button>
           </form>
 
-          <div className="mt-8 text-center">
-            <p className="text-sm text-slate-500">
-              Already have an account?{' '}
-              <Link to="/login" className="font-semibold text-slate-900 hover:underline">
-                Sign in
-              </Link>
-            </p>
-          </div>
+          <p className="text-center text-sm text-slate-500">
+            Already have an account?{' '}
+            <Link to="/login" className="font-semibold text-primary hover:text-primary-hover transition-colors">
+              Sign in
+            </Link>
+          </p>
         </div>
+      </div>
+
+      {/* Right Side - Illustration */}
+      <div className="hidden lg:flex w-1/2 bg-primary relative overflow-hidden items-center justify-center p-12">
+         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-soft-light"></div>
+         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-white/10 rounded-full blur-3xl translate-x-1/3 -translate-y-1/3"></div>
+         <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-indigo-900/30 rounded-full blur-3xl -translate-x-1/3 translate-y-1/3"></div>
+
+         <div className="relative z-10 max-w-lg">
+             <div className="grid grid-cols-2 gap-4 mb-12">
+                 <div className="bg-white/10 backdrop-blur-md border border-white/20 p-6 rounded-3xl transform translate-y-8">
+                     <ShieldCheck className="w-8 h-8 text-green-300 mb-4" />
+                     <h3 className="text-white font-bold text-lg mb-1">Bank-Level Security</h3>
+                     <p className="text-indigo-100 text-sm">Your data is encrypted and protected.</p>
+                 </div>
+                 <div className="bg-white/10 backdrop-blur-md border border-white/20 p-6 rounded-3xl transform -translate-y-4">
+                     <div className="w-8 h-8 text-blue-300 mb-4 font-bold text-xl">AI</div>
+                     <h3 className="text-white font-bold text-lg mb-1">Smart Insights</h3>
+                     <p className="text-indigo-100 text-sm">Personalized advice for your goals.</p>
+                 </div>
+             </div>
+             <div className="text-center">
+                <h2 className="text-3xl font-bold text-white mb-4">Join 10,000+ Savvy Investors</h2>
+                <p className="text-indigo-100 text-lg">Experience the future of personal finance management.</p>
+             </div>
+         </div>
       </div>
     </div>
   );
